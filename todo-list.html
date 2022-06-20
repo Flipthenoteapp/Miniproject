@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+           /* input{
+                margin-left: 700px;
+                margin-right: 500px;
+                margin-top: 200px;
+                border-style: solid;
+                border-radius: 5px;
+                border-spacing: 3px;
+                border-color: rgb(117, 117, 117); 
+            } */
+        </style>
+    </head>
+    <body>
+        <input type = "text" id = "todo-item" />
+        <input type = "date" id = "pickdate" />
+        <button onclick="addTodo()">Add to list</button>
+
+        <div id = "todo-list"></div>
+            <script>
+                
+                let todos;
+
+                const savedTodos = JSON.parse(localStorage.getItem('todos'));
+                if(Array.isArray(savedTodos)){
+                    todos = savedTodos;
+                }
+                else{
+                    todos = [{ 
+                        title : 'First to-do',
+                        dueDate : '2021-10-20',
+                        id : 'id1'
+                    }];
+                }
+
+                const createTodo = (title, dueDate) => {
+                    const id = ' ' + new Date().getTime();
+
+                    todos.push({
+                        title : title,
+                        dueDate : dueDate,
+                        id : id
+                    });
+
+                    saveTodos();
+                }
+
+                //Removes a to-do
+                const removeTodo = Deleteid => {
+                    todos = todos.filter(todo => {
+                        if(todo.id === Deleteid){
+                            return false;
+                        }else{
+                            return true;
+                        }
+                    });
+
+                    saveTodos();
+                }
+
+                const saveTodos = () => {
+                    localStorage.setItem('todos', JSON.stringify(todos));
+                }
+
+                const addTodo = () => {
+                    const textbox = document.getElementById("todo-item");
+                    const title = textbox.value;
+
+                    const datePicked = document.getElementById("pickdate");
+                    const dueDate = datePicked.value;
+
+                    createTodo(title, dueDate);
+                    render();
+                }
+
+                const deleteTodo = event => {
+                    const deleteButton = event.target;
+                    const Deleteid = deleteButton.id;
+
+                    removeTodo(Deleteid);
+                    render();
+                }
+
+                const render = () => {
+                    document.getElementById('todo-list').innerHTML = '';
+
+                    todos.forEach(todo => {
+                        const element = document.createElement('div');
+                        element.innerText = todo.title + ' ' + todo.dueDate;
+
+                        const deleteButton = document.createElement('button');
+                        deleteButton.innerText = "Delete";
+                        deleteButton.style = "margin-left: 12px";
+                        deleteButton.onclick = deleteTodo;
+                        deleteButton.id = todo.id;
+                        element.appendChild(deleteButton);
+
+                        const todoList = document.getElementById('todo-list');
+                        todoList.appendChild(element);
+                    });
+                }
+
+                render();
+            </script>
+    </body>
+</html>
