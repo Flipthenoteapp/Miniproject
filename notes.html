@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">  
+    <link rel="stylesheet" href="notes.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css">
+    <script type="module" defer>
+        import { redirectTo } from '/script/auth.mjs';
+        import {
+          deleteNote as deleteRemoteNote,
+          getNotes,
+          updateLocalNotes,
+          upsertNote,
+        } from '/script/notes.mjs';
+        import { format as formatDate } from '/util/date.mjs';
+
+        redirectTo();
+
+        const addBox = document.querySelector(".add-box"),
+        popupBox = document.querySelector(".popup-box"),
+        popupTitle = popupBox.querySelector("header p"),
+        closeIcon = popupBox.querySelector("header i"),
+        titleTag = popupBox.querySelector("input"),
+        descTag = popupBox.querySelector("textarea"),
+        addBtn = popupBox.querySelector("button");
+
+        const editingNote = { id: undefined };
+
+        const updateNote = async (noteId) => {
+            const notes = await getNotes();
+            const {
+                body = '', id, title = '',
+            } = notes.find(({ id }) => id === noteId) || {};
+
+            editingNote.id = id;
+            descTag.value = body;
+            titleTag.value = title;
+
+            const operation = id ? 'Update' : 'Add';
+            const actionText = `${id ? 'Update' : 'Add'} Note`;
+            popupTitle.innerText = actionText;
+            addBtn.innerText = actionText;
+            popupBox.classList.add("show");
+            document.querySelector("body").style.overflow = "hidden";
+            if(window.innerWidth > 660) titleTag.focus();
+        };
+
+        const closeEditDialog = () => {
+            titleTag.value = descTag.value = "";
+            popupBox.classList.remove("show");
+            document.querySelector("body").style.overflow = "auto";
+        };
+
+        addBox.addEventListener("click", () => updateNote(undefined));
+        closeIcon.addEventListener("click", closeEditDialog);
+
+        const showMenu = (element) => (event) => {
+            element.parentElement.classList.add("show");
+            const remove = (event) => {
+              if (event.target !== element) {
+                element.parentElement.classList.remove("show");
+                document.removeEventListener('click', remove);
+              }
+            };
+            document.addEventListener("click", remove);
+        };
+
+        const deleteNote = async (noteId) => {
+            let confirmDel = confirm("Are you sure you want to delete this note?");
+            if(!confirmDel) return;
+            const { data, error } = await deleteRemoteNote(noteId);
+            if (error) {
+                alert(`Could not delete note: ${error}`)
+            } else {
+                const { id } = data;
+                const notes = await getNotes();
+                const update = notes.filter(({ id: noteId }) => id !== noteId);
+                updateLocalNotes(update);
+            }
+            renderNotes();
+        };
+
+        const ActionButton = ({ label, icon, action }) => {
+            const button = document.createElement('li');
+            button.innerHTML = `<i class="uil uil-${icon}"></i>${label}</li>`;
+            button.addEventListener('click', action);
+            return button;
+        };
+
+        const renderNote = ({ body = '', date, id, title = '' }) => {
+            const menuButton = document.createElement('i');
+            menuButton.className = "uil uil-ellipsis-h";
+            menuButton.addEventListener('click', showMenu(menuButton));
+            const menu = document.createElement('ul');
+            menu.className = 'menu';
+            menu.append(
+                ActionButton({ label: 'Edit', icon: 'pen', action: () => updateNote(id) }),
+                ActionButton({ label: 'Delete', icon: 'trash', action: () => deleteNote(id) }),
+                // ActionButton({ label: 'Edit', icon: 'pen', action: () => updateNote(id) }),
+            );
+            const settings = document.createElement('div');
+            settings.className="settings";
+            settings.append(menuButton, menu);
+            const bottom = document.createElement('div');
+            bottom.className = 'bottom-content';
+            bottom.innerHTML = `<span>${formatDate(date)}</span>`;
+            bottom.append(settings);
+            const wrapper = document.createElement('li');
+            wrapper.className = 'note';
+            wrapper.innerHTML = `
+                <div class="details">
+                    <p>${title}</p>
+                    <span>${body.replaceAll('\n', '<br/>')}</span>
+                </div>
+            `;
+            wrapper.append(bottom);
+            return wrapper;
+        };
+
+        const renderNotes = async (cached) => {
+            document.querySelectorAll(".note").forEach(li => li.remove());
+            const notes = await getNotes(cached);
+            addBox.after(...notes.map(renderNote));
+        }
+
+        renderNotes(false);
+
+        addBtn.addEventListener("click", async (event) => {
+            event.preventDefault();
+
+            const { id } = editingNote;
+            const body = descTag.value.trim();
+            const title = titleTag.value.trim();
+
+            if (!body) return alert('Provide description');
+            if (!title) return alert('Provide title');
+
+            const { data, error } = await upsertNote({ id, body, title });
+
+            if (error) {
+                alert(`Error saving note: ${error}`);
+                return;
+            }
+
+            const notes = await getNotes();
+
+            const update = id ? notes.map((note) => {
+                const { id: noteId } = note;
+                return id === noteId ? data : note;
+            }) : [...notes, data];
+
+            updateLocalNotes(update);
+            renderNotes();
+            closeEditDialog();
+        });
+    </script>
+  </head>
+  <body>
+    <div class="popup-box">
+      <div class="popup">
+        <div class="content">
+          <header>
+            <p></p>
+            <i class="uil uil-times"></i>
+          </header>
+          <form action="#">
+            <div class="row title">
+              <label>Title</label>
+              <input type="text" spellcheck="false">
+            </div>
+            <div class="row description">
+              <label>Description</label> 
+              <textarea id="textareaindex" spellcheck="false"></textarea>
+            </div>
+          <div class="text-editor-header">
+            <button></button>
+          </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="wrapper">
+      <li class="add-box">
+        <div class="icon"><i class="uil uil-plus"></i></div>
+        <p>Add new note</p>
+      </li>
+    </div>
+
+    <!-- Font Awesome -->
+    <script src="https://use.fontawesome.com/a31a3f8384.js"></script> 
+    <script src="https://kit.fontawesome.com/e5927b9aa1.js" crossorigin="anonymous"></script>
+    
+  </body>
+</html>
