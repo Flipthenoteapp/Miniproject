@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="index.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="module" defer>
+        import { logout, redirectTo } from '/script/auth.mjs';
+        redirectTo();
+
+        const logoutButton = document.getElementById('logout');
+        logoutButton.addEventListener('click', logout);
+
+        const icon = document.querySelector('.icon');
+        const search = document.querySelector('.search');
+        icon.onclick = function(){
+            search.classList.toggle('active')
+        }
+    </script>
+</head>
+<body>
+
+    <div class="header"></div>
+  <input type="checkbox" class="openSidebarMenu" id="openSidebarMenu">
+  <label for="openSidebarMenu" class="sidebarIconToggle">
+    <div class="spinner diagonal part-1"></div>
+    <div class="spinner horizontal"></div>
+    <div class="spinner diagonal part-2"></div>
+  </label>
+  <div id="sidebarMenu">
+    <ul class="sidebarMenuInner">
+      <li><a href="#" >Settings</a></li>
+      <li><a href="/favourites.html">Favourites</a></li>
+        <li id="logout">Logout</a></button></li>
+    </ul>
+  </div>
+      
+      <div>
+        <a href="/notes.html"><button class="tablink" id="myButton">Your Notes</button></a>
+        <a href="/todo.html"><button class="tablink" id="myButton2">To Do</button></a>
+    </div>
+</body>
+</html> 
