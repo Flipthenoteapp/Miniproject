@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="notes.css">
+    <title>Document</title>
+    <script type = 'module'>
+        import { getNotes } from '/script/notes.mjs'
+        import { format as formatDate } from '/util/date.mjs';
+        const renderNotes = async () => {
+            const notes = await getNotes();
+            const wrapper = document.querySelector('.wrapper')
+            const rendered = notes
+              .filter(({ favourite }) => favourite)
+              .map(({ body, date, title }) => `
+                <li class="note">
+                    <div class="details">
+                        <p>${title}</p>
+                        <span>
+                            ${body.replaceAll('\n', '<br/>')}
+                        </span>
+                    </div>
+                    <div class="bottom-content">
+                        <span>${formatDate(date)}</span>
+                    </div>
+                </li>
+              `).join('\n');
+            wrapper.innerHTML = rendered;
+        }
+        renderNotes();
+    </script>
+</head>
+<body>
+      <div class="wrapper">
+      </div>
+      
+
+    <script src="https://use.fontawesome.com/a31a3f8384.js"></script> 
+    <script src="https://kit.fontawesome.com/e5927b9aa1.js" crossorigin="anonymous"></script>
+  
+</body>
+</html>

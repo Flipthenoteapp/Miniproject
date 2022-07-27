@@ -1,0 +1,24 @@
+body {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(315deg,
+    rgba(240, 156, 194, 1) 0%,
+    rgba(187, 227, 247, 1) 100%);
+    background-repeat: repeat-y;
+    background-size: cover;
+}
+
+#login, #reg-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 480px;
+}
+
+input {
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 0 4px 0 #c0c0c0;
+    padding: 8px;
+}
